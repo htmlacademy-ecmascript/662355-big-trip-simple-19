@@ -6,6 +6,7 @@ import PointListView from '../view/pointListView.js';
 import PointsModel from '../model/modelPoint.js';
 import DestinationsModel from '../model/modelDestination.js';
 import OffersModel from '../model/modelOffers.js';
+import EmptyListView from '../view/emptyListView.js';
 
 
 export default class EventsPresenter {
@@ -25,11 +26,15 @@ export default class EventsPresenter {
       point.offers = point.offers.map((offerId) => this.#offersModel.getByTypeAndId(offerId, point.type));
       return point;
     });
-    render(new SorterView(), this.#eventsContainer);
-    render(this.#pointListComponent, this.#eventsContainer);
-    points.forEach((point) => {
-      this.#renderPoint(point);
-    });
+    if (points.length === 0) {
+      render(new EmptyListView(), this.#eventsContainer);
+    } else {
+      render(new SorterView(), this.#eventsContainer);
+      render(this.#pointListComponent, this.#eventsContainer);
+      points.forEach((point) => {
+        this.#renderPoint(point);
+      });
+    }
   }
 
   #renderPoint(point) {

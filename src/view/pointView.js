@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate } from '../utils.js';
 
 function createOfferTemplate(offer) {
@@ -39,27 +39,24 @@ function createPointTemplate(point) {
 </li>`;
 }
 
-export default class PointView {
-  #element = null;
+export default class PointView extends AbstractView {
   #point = null;
-  constructor(point) {
+  #handleClick = null;
+
+  constructor({ point, onClick }) {
+    super();
     this.#point = point;
+    this.#handleClick = onClick;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
   }
 
-  get #template() {
+  get template() {
     return createPointTemplate(this.#point);
   }
 
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.#template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
-  }
+  #clickHandler = () => {
+    this.#handleClick();
+  };
 }
+
 

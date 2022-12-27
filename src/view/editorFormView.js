@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { humanizeFormDate } from '../utils.js';
 
 function createOfferTemplate(offer, checked) {
@@ -126,28 +126,32 @@ function createFormTemplate(point, offers) {
 </form>`;
 }
 
-export default class EditorFormView {
+export default class EditorFormView extends AbstractView {
+  #handleSubmit = null;
+  #handleClick = null;
   #point = null;
   #offers = null;
-  #element = null;
-  constructor(point, offers) {
+
+  constructor({ point, offers, onSubmit, onClick }) {
+    super();
     this.#point = point;
     this.#offers = offers;
+    this.#handleSubmit = onSubmit;
+    this.#handleClick = onClick;
+    this.element.addEventListener('submit', this.#submitHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
   }
 
-  get #template() {
+  get template() {
     return createFormTemplate(this.#point, this.#offers);
   }
 
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.#template);
-    }
+  #submitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleSubmit();
+  };
 
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
-  }
+  #clickHandler = () => {
+    this.#handleClick();
+  };
 }

@@ -1,7 +1,7 @@
 import EditFormView from '../view/editorFormView.js';
 import PointView from '../view/pointView.js';
 import SorterView from '../view/sorterView.js';
-import { render } from '../render.js';
+import { render } from '../framework/render.js';
 import PointListView from '../view/pointListView.js';
 import PointsModel from '../model/modelPoint.js';
 import DestinationsModel from '../model/modelDestination.js';
@@ -38,35 +38,44 @@ export default class EventsPresenter {
   }
 
   #renderPoint(point) {
-    const editFormComponent = new EditFormView(point, this.#offersModel.getByType(point.type));
-    const pointComponent = new PointView(point);
-    const replacePointToForm = () => {
-      this.#pointListComponent.element.replaceChild(editFormComponent.element, pointComponent.element);
-    };
-    const replaceFormToPoint = () => {
-      this.#pointListComponent.element.replaceChild(pointComponent.element, editFormComponent.element);
-    };
-    editFormComponent.element.addEventListener('submit', (evt) => {
-      evt.preventDefault();
-      replaceFormToPoint();
-    });
-    editFormComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
-      replaceFormToPoint();
-    });
-    const escHendler = (evt) => {
+    const escHandler = (evt) => {
       if (evt.key === 'Escape') {
-        replaceFormToPoint();
-        document.removeEventListener('keydown', escHendler);
+        replaceFormToPoint.call(this);
+        document.removeEventListener('keydown', escHandler);
       }
     };
-    document.addEventListener('keydown', escHendler);
-    pointComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
-      replacePointToForm();
+
+    const editFormComponent = new EditFormView({
+      point,
+      offers: this.#offersModel.getByType(point.type),
+      onSubmit: () => {
+        replaceFormToPoint.call(this);
+        document.removeEventListener('keydown', escHandler);
+      },
+      onClick: () => {
+        replaceFormToPoint.call(this);
+        document.removeEventListener('keydown', escHandler);
+      }
     });
+
+    const pointComponent = new PointView({
+      point,
+      onClick: () => {
+        replacePointToForm.call(this);
+        document.addEventListener('keydown', escHandler);
+      }
+    });
+
+    function replacePointToForm() {
+      this.#pointListComponent.element.replaceChild(editFormComponent.element, pointComponent.element);
+    }
+
+    function replaceFormToPoint() {
+      this.#pointListComponent.element.replaceChild(pointComponent.element, editFormComponent.element);
+    }
 
     render(pointComponent, this.#pointListComponent.element);
   }
-
 
 }
 

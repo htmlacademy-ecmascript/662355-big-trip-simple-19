@@ -8,7 +8,6 @@ import DestinationsModel from '../model/modelDestination.js';
 import OffersModel from '../model/modelOffers.js';
 import EmptyListView from '../view/emptyListView.js';
 
-
 export default class EventsPresenter {
   #pointListComponent = new PointListView();
   #destinationsModel = new DestinationsModel();
@@ -55,7 +54,8 @@ export default class EventsPresenter {
       onClick: () => {
         replaceFormToPoint.call(this);
         document.removeEventListener('keydown', escHandler);
-      }
+      },
+      offersByType: this.#offersModel.offers
     });
 
     const pointComponent = new PointView({

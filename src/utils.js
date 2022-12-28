@@ -22,8 +22,15 @@ function machinePointDate(date) {
   return dayjs(date).format(MACHINE_DATA_FORMAT);
 }
 
-function humanizeFormDate(dateTime){
+function humanizeFormDate(dateTime) {
   return dayjs(dateTime).format(FORM_DATE);
 }
 
-export { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate,humanizeFormDate };
+function ucFirst(str) {
+  if (!str) {
+    return str;
+  }
+  return str[0].toUpperCase() + str.slice(1);
+}
+
+export { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate, humanizeFormDate, ucFirst };

@@ -21,7 +21,7 @@ function createEventTypeTemplate(type) {
 
 function createFormTemplate(point, offers, offersByType) {
   const offersTemplate = offers.map((offer) => createOfferTemplate(offer, point.offers.some((pointOffer) => pointOffer.id === offer.id))).join('\n');
-  const eventTypeTemplate = offersByType.map((offer)=> offer.type).map((type)=> createEventTypeTemplate(type)).join('\n');
+  const eventTypeTemplate = offersByType.map((offer) => offer.type).map((type) => createEventTypeTemplate(type)).join('\n');
   return ` <form class="event event--edit" action="#" method="post">
   <header class="event__header">
     <div class="event__type-wrapper">
@@ -92,7 +92,7 @@ function createFormTemplate(point, offers, offersByType) {
 </form>`;
 }
 
-export default class EditorFormView extends AbstractView {
+export default class EditFormView extends AbstractView {
   #handleSubmit = null;
   #handleClick = null;
   #point = null;

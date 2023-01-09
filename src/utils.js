@@ -33,4 +33,21 @@ function ucFirst(str) {
   return str[0].toUpperCase() + str.slice(1);
 }
 
-export { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate, humanizeFormDate, ucFirst };
+function sortPointsByDay(pointA, pointB) {
+  return dayjs(pointA.start).diff(dayjs(pointB.start));
+}
+
+function sortPointsByPrice(pointA, pointB) {
+  return pointB.price - pointA.price;
+}
+
+export {
+  sortPointsByDay,
+  sortPointsByPrice,
+  humanizePointTime,
+  machinePointDateTime,
+  humanizePointDate,
+  machinePointDate,
+  humanizeFormDate,
+  ucFirst
+};

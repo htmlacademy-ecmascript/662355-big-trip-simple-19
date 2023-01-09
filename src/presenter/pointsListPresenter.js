@@ -6,16 +6,19 @@ import DestinationsModel from '../model/modelDestination.js';
 import OffersModel from '../model/modelOffers.js';
 import EmptyListView from '../view/emptyListView.js';
 import PointPresenter from './pointPresenter.js';
+import { SortType } from '../const.js';
+import { sortPointsByDay, sortPointsByPrice } from '../utils.js';
 
 export default class PointsListPresenter {
   #pointListComponent = new PointListView();
   #emptyListComponent = new EmptyListView();
-  #sorterComponent = new SorterView();
+  #sorterComponent = null;
   #destinationsModel = new DestinationsModel();
   #pointsModel = new PointsModel();
   #offersModel = new OffersModel();
   #pointsContainer = null;
   #pointPresenters = [];
+  #points = null;
 
 
   constructor({ pointsContainer }) {
@@ -23,12 +26,12 @@ export default class PointsListPresenter {
   }
 
   init() {
-    const points = this.#pointsModel.points.map((point) => {
+    this.#points = this.#pointsModel.points.map((point) => {
       point.destination = this.#destinationsModel.getById(point.destination);
       point.offers = point.offers.map((offerId) => this.#offersModel.getByTypeAndId(offerId, point.type));
       return point;
     });
-    this.#renderList(points);
+    this.#renderList();
   }
 
   #renderPoint(point) {
@@ -44,23 +47,49 @@ export default class PointsListPresenter {
     render(this.#emptyListComponent, this.#pointsContainer);
   }
 
+  #clearPoints() {
+    this.#pointPresenters.forEach((pointPresenter) => {
+      pointPresenter.destroy();
+    });
+  }
+
+  #sortPoints(sortType) {
+    switch (sortType) {
+      case SortType.PRICE:
+        this.#points.sort(sortPointsByPrice);
+        break;
+      case SortType.DAY:
+      default:
+        this.#points.sort(sortPointsByDay);
+    }
+  }
+
+  #handleSortTypeChange = (sortType) => {
+    this.#sortPoints(sortType);
+    this.#clearPoints();
+    this.#renderPoints();
+  };
+
   #renderSorter() {
+    this.#sorterComponent = new SorterView({
+      onSortTypeChange: this.#handleSortTypeChange
+    });
     render(this.#sorterComponent, this.#pointsContainer);
   }
 
-  #renderPoints(points) {
+  #renderPoints() {
     render(this.#pointListComponent, this.#pointsContainer);
-    points.forEach((point) => {
+    this.#points.forEach((point) => {
       this.#renderPoint(point);
     });
   }
 
-  #renderList(points) {
-    if (points.length === 0) {
+  #renderList() {
+    if (this.#points.length === 0) {
       this.#renderEmptyList();
     } else {
       this.#renderSorter();
-      this.#renderPoints(points);
+      this.#renderPoints();
     }
   }
 

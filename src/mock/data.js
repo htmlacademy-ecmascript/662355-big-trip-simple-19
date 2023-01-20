@@ -39,7 +39,11 @@ const destinations = [{
   'name': 'Amsterdam',
   'pictures': [
     {
-      'src': 'http://picsum.photos/300/200?r=0.0762563005163317',
+      'src': 'http://picsum.photos/300/200?r=0.0762565005163317',
+      'description': 'Amsterdam goverment building'
+    },
+    {
+      'src': 'http://picsum.photos/300/200?r=0.0762563005143317',
       'description': 'Amsterdam goverment building'
     }
   ]
@@ -49,8 +53,16 @@ const destinations = [{
   'name': 'Washington',
   'pictures': [
     {
-      'src': 'http://picsum.photos/300/200?r=0.0762563005163317',
+      'src': 'http://picsum.photos/300/200?r=0.0962563005163317',
       'description': 'Capitoll hill'
+    },
+    {
+      'src': 'http://picsum.photos/300/200?r=0.0762563005162317',
+      'description': 'Capitoll hill'
+    },
+    {
+      'src': 'http://picsum.photos/300/200?r=0.0762563005263317',
+      'description': 'Amsterdam goverment building'
     }
   ]
 }];

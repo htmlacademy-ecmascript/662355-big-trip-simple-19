@@ -2,6 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 import OffersModel from '../model/modelOffers.js';
 import EditFormView from '../view/editFormView.js';
 import PointView from '../view/pointView.js';
+import DestinationsModel from '../model/modelDestination.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -16,6 +17,7 @@ export default class PointPresenter {
   #offersModel = new OffersModel();
   #handleModeChange = null;
   #mode = Mode.DEFAULT;
+  #destinationsModel = new DestinationsModel();
 
 
   constructor({ pointListContainer, onModeChange }) {
@@ -31,10 +33,10 @@ export default class PointPresenter {
 
     this.#editFormComponent = new EditFormView({
       point: this.#point,
-      offers: this.#offersModel.getByType(point.type),
       onSubmit: this.#handlerForm,
       onClick: this.#handlerForm,
-      offersByType: this.#offersModel.offers
+      offersByType: this.#offersModel.offers,
+      destinations: this.#destinationsModel.destinations
     });
 
     this.#pointComponent = new PointView({

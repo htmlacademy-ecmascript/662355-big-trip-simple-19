@@ -1,5 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { humanizeFormDate, ucFirst } from '../utils.js';
+import { ucFirst } from '../utils.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+
 
 function createOfferTemplate(offer, checked) {
   return `<div class="event__offer-selector">
@@ -102,10 +105,10 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
 
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeFormDate(state.start)}">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeFormDate(state.end)}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="">
             </div>
 
             <div class="event__field-group  event__field-group--price">
@@ -128,13 +131,15 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
         </form>`;
 }
 
-export default class EditFormView extends AbstractStatefulView {
+export default class FormView extends AbstractStatefulView {
   #handleSubmit = null;
   #handleClick = null;
   #destinations = null;
   #offersByType = null;
   #nameToIdMap = null;
   #isNewForm = false;
+  #datepickerStart = null;
+  #datepickerEnd = null;
 
   constructor({ point, onSubmit, onClick, offersByType, destinations }) {
     super();
@@ -170,7 +175,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   _restoreHandlers = () => {
     this.element.addEventListener('submit', this.#submitHandler);
-    if(!this.#isNewForm){
+    if (!this.#isNewForm) {
       this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
     }
     this.element.querySelector('#event-destination-1').addEventListener('change', this.#destinationChangeHandler);
@@ -180,6 +185,8 @@ export default class EditFormView extends AbstractStatefulView {
       .forEach((el) => {
         el.addEventListener('change', this.#eventChangeHandler);
       });
+    this.#setDatepickerStart();
+    this.#setDatepickerEnd();
   };
 
   #parseToState(point) {
@@ -189,10 +196,22 @@ export default class EditFormView extends AbstractStatefulView {
     };
   }
 
+  removeElement(){
+    super.removeElement();
+
+    this.#datepickerStart.destroy();
+    this.#datepickerStart = null;
+
+    this.#datepickerEnd.destroy();
+    this.#datepickerEnd = null;
+  }
+
   #createStateNewForm() {
     return {
       type: 'bus',
-      offers: []
+      offers: [],
+      start: new Date(),
+      end: new Date()
     };
   }
 
@@ -210,4 +229,40 @@ export default class EditFormView extends AbstractStatefulView {
     });
   };
 
+  #setDatepickerStart() {
+    this.#datepickerStart = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        dateFormat: 'j/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.start,
+        onChange: ([userDate]) => {
+          const newState = {start: userDate};
+          if(userDate > this._state.end){
+            newState.end = userDate;
+          }
+          this.updateElement(newState);
+        }
+      }
+    );
+  }
+
+  #setDatepickerEnd() {
+    this.#datepickerEnd = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        dateFormat: 'j/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.end,
+        minDate: this._state.start,
+        onChange: ([userDate]) => {
+          this.updateElement({
+            end: userDate,
+          });
+        }
+      });
+  }
+
+
 }
+

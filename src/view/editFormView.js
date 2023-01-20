@@ -3,8 +3,8 @@ import { humanizeFormDate, ucFirst } from '../utils.js';
 
 function createOfferTemplate(offer, checked) {
   return `<div class="event__offer-selector">
-  <input class="event__offer-checkbox  visually-hidden" id="event-offer-luggage-1" type="checkbox" name="event-offer-luggage" ${checked ? 'checked' : ''}>
-  <label class="event__offer-label" for="event-offer-luggage-1">
+  <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer" ${checked ? 'checked' : ''}>
+  <label class="event__offer-label" for="event-offer-${offer.id}">
     <span class="event__offer-title">${offer.title}</span>
     &plus;&euro;&nbsp;
     <span class="event__offer-price">${offer.price}</span>
@@ -23,18 +23,54 @@ function createPictureTemplate(picture) {
   return `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`;
 }
 
-function createDestinationTemplate(destination){
+function createDestinationTemplate(destination) {
   return ` <option value="${destination.name}"></option>`;
 }
 
-function createFormTemplate(state, offersByType, destinations) {
-  const offersTemplate = offersByType.find((offer) => state.type === offer.type)
-    .offers
-    .map((offer) => createOfferTemplate(offer, state.offers.some((pointOffer) => pointOffer.id === offer.id)))
+function createOffersContainer(offersTemplate) {
+  return `<section class="event__section  event__section--offers">
+  <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+
+  <div class="event__available-offers">
+    ${offersTemplate}
+  </div>
+</section>`;
+}
+
+function createDestinationContainer(destination) {
+  const picturesTemplate = destination
+    .pictures
+    .map((picture) => createPictureTemplate(picture))
     .join('\n');
+  return `<section class="event__section  event__section--destination">
+  <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+  <p class="event__destination-description">${destination.description}</p>
+</section>
+<div class="event__photos-container">
+  <div class="event__photos-tape">
+    ${picturesTemplate}
+  </div>`;
+}
+
+const rollButton = `<button class="event__rollup-btn" type="button">
+<span class="visually-hidden">Open event</span>
+</button>`;
+
+function createFormTemplate(state, offersByType, destinations, isNewForm) {
+  const offers = offersByType.find((offer) => state.type === offer.type).offers;
+  let offersTemplate = '';
+  if (offers.length > 0) {
+    const offersTemplateList = offers.map((offer) => createOfferTemplate(offer, state.offers.some((pointOffer) => pointOffer.id === offer.id)))
+      .join('\n');
+    offersTemplate = createOffersContainer(offersTemplateList);
+  }
   const eventTypeTemplate = offersByType.map((offer) => offer.type).map((type) => createEventTypeTemplate(type)).join('\n');
-  const picturesTemplate = state.destination.pictures.map((picture) => createPictureTemplate(picture)).join('\n');
+  const selectedDestination = destinations.find((destination) => destination.id === state.destinationId);
   const destinationsTemplate = destinations.map((destination) => createDestinationTemplate(destination)).join('\n');
+  const selectedDestinationTemplate = selectedDestination ? createDestinationContainer(selectedDestination) : '';
+  const destinationName = selectedDestination ? selectedDestination.name : '';
+  const price = state.price ? state.price : '';
+  const buttonName = isNewForm ? 'Cancel' : 'Delete';
   return ` <form class="event event--edit" action="#" method="post">
       <header class="event__header">
         <div class="event__type-wrapper">
@@ -58,7 +94,7 @@ function createFormTemplate(state, offersByType, destinations) {
           <label class="event__label  event__type-output" for="event-destination-1">
             ${state.type}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${state.destination.name}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
             <datalist id="destination-list-1">
              ${destinationsTemplate}
             </datalist>
@@ -77,32 +113,16 @@ function createFormTemplate(state, offersByType, destinations) {
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${state.price}">
+              <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
             </div>
 
             <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-            <button class="event__reset-btn" type="reset">Delete</button>
-            <button class="event__rollup-btn" type="button">
-              <span class="visually-hidden">Open event</span>
-            </button>
+            <button class="event__reset-btn" type="reset">${buttonName}</button>  
+            ${isNewForm ? '' : rollButton}
           </header>
           <section class="event__details">
-            <section class="event__section  event__section--offers">
-              <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
-              <div class="event__available-offers">
-                ${offersTemplate}
-              </div>
-            </section>
-
-            <section class="event__section  event__section--destination">
-              <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-              <p class="event__destination-description">${state.destination.description}</p>
-            </section>
-            <div class="event__photos-container">
-              <div class="event__photos-tape">
-                ${picturesTemplate}
-              </div>
+            ${offersTemplate}
+            ${selectedDestinationTemplate}
             </div>
           </section>
         </form>`;
@@ -113,19 +133,30 @@ export default class EditFormView extends AbstractStatefulView {
   #handleClick = null;
   #destinations = null;
   #offersByType = null;
+  #nameToIdMap = null;
+  #isNewForm = false;
 
   constructor({ point, onSubmit, onClick, offersByType, destinations }) {
     super();
-    this._setState(this.#parseToState(point));
+    if (point) {
+      this._setState(this.#parseToState(point));
+    } else {
+      this.#isNewForm = true;
+      this._setState(this.#createStateNewForm());
+    }
     this.#handleSubmit = onSubmit;
     this.#handleClick = onClick;
     this.#destinations = destinations;
     this.#offersByType = offersByType;
+    this.#nameToIdMap = destinations.reduce((acc, destination) => {
+      acc[destination.name] = destination.id;
+      return acc;
+    }, {});
     this._restoreHandlers();
   }
 
   get template() {
-    return createFormTemplate(this._state, this.#offersByType, this.#destinations);
+    return createFormTemplate(this._state, this.#offersByType, this.#destinations, this.#isNewForm);
   }
 
   #submitHandler = (evt) => {
@@ -139,7 +170,10 @@ export default class EditFormView extends AbstractStatefulView {
 
   _restoreHandlers = () => {
     this.element.addEventListener('submit', this.#submitHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
+    if(!this.#isNewForm){
+      this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
+    }
+    this.element.querySelector('#event-destination-1').addEventListener('change', this.#destinationChangeHandler);
     const eventsNodeList = this.element.querySelectorAll('.event__type-input');
     // преобразование NodeList в массив
     Array.from(eventsNodeList)
@@ -151,6 +185,14 @@ export default class EditFormView extends AbstractStatefulView {
   #parseToState(point) {
     return {
       ...point,
+      destinationId: point.destination.id
+    };
+  }
+
+  #createStateNewForm() {
+    return {
+      type: 'bus',
+      offers: []
     };
   }
 
@@ -161,5 +203,11 @@ export default class EditFormView extends AbstractStatefulView {
     });
   };
 
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      destinationId: this.#nameToIdMap[evt.target.value]
+    });
+  };
 
 }

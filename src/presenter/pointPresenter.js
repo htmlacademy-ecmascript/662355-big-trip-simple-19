@@ -1,6 +1,6 @@
 import { render, replace, remove } from '../framework/render.js';
 import OffersModel from '../model/modelOffers.js';
-import EditFormView from '../view/editFormView.js';
+import FormView from '../view/formView.js';
 import PointView from '../view/pointView.js';
 import DestinationsModel from '../model/modelDestination.js';
 
@@ -31,7 +31,7 @@ export default class PointPresenter {
     const prevPointComponent = this.#pointComponent;
     const prevEditFormComponent = this.#editFormComponent;
 
-    this.#editFormComponent = new EditFormView({
+    this.#editFormComponent = new FormView({
       point: this.#point,
       onSubmit: this.#handlerForm,
       onClick: this.#handlerForm,

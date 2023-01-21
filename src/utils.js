@@ -4,7 +4,6 @@ const TIME_FORMAT = 'HH:mm';
 const MACHINE_FORMAT = 'YYYY-MM-DDTHH:mm';
 const DATE_FORMAT = 'MMM DD';
 const MACHINE_DATA_FORMAT = 'YYYY-MM-DD';
-const FORM_DATE = 'YY/MM/DD HH:mm';
 
 function humanizePointTime(datetime) {
   return dayjs(datetime).format(TIME_FORMAT);
@@ -20,10 +19,6 @@ function humanizePointDate(date) {
 
 function machinePointDate(date) {
   return dayjs(date).format(MACHINE_DATA_FORMAT);
-}
-
-function humanizeFormDate(dateTime) {
-  return dayjs(dateTime).format(FORM_DATE);
 }
 
 function ucFirst(str) {
@@ -48,6 +43,5 @@ export {
   machinePointDateTime,
   humanizePointDate,
   machinePointDate,
-  humanizeFormDate,
   ucFirst
 };

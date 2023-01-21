@@ -112,7 +112,12 @@ const offers = [{
 {
   type: 'drive',
   offers: offersByDrive
-}];
+},
+{
+  type: 'ship',
+  offers: []
+}
+];
 
 export { points, offers, destinations };
 

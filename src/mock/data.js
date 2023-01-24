@@ -1,5 +1,6 @@
 const points = [{
   type: 'taxi',
+  id: 0,
   destination: 1,
   offers: [1, 2],
   start: new Date(2019, 10, 26, 16, 0),
@@ -7,6 +8,7 @@ const points = [{
   price: 1000
 }, {
   type: 'bus',
+  id: 1,
   destination: 2,
   offers: [1],
   start: new Date(2019, 11, 26, 16, 0),
@@ -14,6 +16,7 @@ const points = [{
   price: 2000
 }, {
   type: 'drive',
+  id: 2,
   destination: 3,
   offers: [2],
   start: new Date(2019, 12, 26, 16, 0),

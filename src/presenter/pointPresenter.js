@@ -1,8 +1,7 @@
+import { UpdateType, UserAction } from '../const.js';
 import { render, replace, remove } from '../framework/render.js';
-import OffersModel from '../model/modelOffers.js';
 import FormView from '../view/formView.js';
 import PointView from '../view/pointView.js';
-import DestinationsModel from '../model/modelDestination.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -14,27 +13,30 @@ export default class PointPresenter {
   #pointComponent = null;
   #editFormComponent = null;
   #point = null;
-  #offersModel = new OffersModel();
+  #offersModel = null;
   #handleModeChange = null;
   #mode = Mode.DEFAULT;
-  #destinationsModel = new DestinationsModel();
+  #destinationsModel = null;
+  #handleDataChange = null;
 
 
-  constructor({ pointListContainer, onModeChange }) {
+  constructor({ pointListContainer, onModeChange, offersModel, destinationsModel, onDataChange }) {
     this.#pointListContainer = pointListContainer;
     this.#handleModeChange = onModeChange;
+    this.#offersModel = offersModel;
+    this.#destinationsModel = destinationsModel;
+    this.#handleDataChange = onDataChange;
   }
 
   init(point) {
     this.#point = point;
-
     const prevPointComponent = this.#pointComponent;
     const prevEditFormComponent = this.#editFormComponent;
-
     this.#editFormComponent = new FormView({
       point: this.#point,
-      onSubmit: this.#handlerForm,
-      onClick: this.#handlerForm,
+      onSubmit: this.#handlerFormSubmit,
+      onRollUp: this.#handlerRollUp,
+      onRemove: this.#handlerRemove,
       offersByType: this.#offersModel.offers,
       destinations: this.#destinationsModel.destinations
     });
@@ -70,7 +72,25 @@ export default class PointPresenter {
     }
   }
 
-  #handlerForm = () => {
+  #handlerFormSubmit = (point) => {
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      point
+    );
+    this.#replaceFormToPoint();
+    document.removeEventListener('keydown', this.#escHandler);
+  };
+
+  #handlerRemove = (point) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point
+    );
+  };
+
+  #handlerRollUp = () => {
     this.#replaceFormToPoint();
     document.removeEventListener('keydown', this.#escHandler);
   };

@@ -31,12 +31,19 @@ export default class PointsModel extends Observable {
     this._notify(UpdateType.INIT);
   }
 
-  updatePoint(updateType, update) {
+  async updatePoint(updateType, update) {
     if (!this.#points.has(update.id)) {
       throw new Error('Can\'t update unexisting point');
     }
-    this.#points.set(update.id, update);
-    this._notify(updateType, update);
+    try {
+      const serverPoint = this.#adaptToServer(update);
+      const newPoint = await this.#apiService.updatePoint(serverPoint);
+      const newClientPoint = this.#adaptToClient(newPoint);
+      this.#points.set(newClientPoint.id, newClientPoint);
+      this._notify(updateType, newClientPoint);
+    } catch (err) {
+      //todo добавить обработку ошибок
+    }
   }
 
   addPoint(updateType, update) {
@@ -69,5 +76,21 @@ export default class PointsModel extends Observable {
     delete adaptPoint['base_price'];
 
     return adaptPoint;
+  };
+
+  #adaptToServer = (point) => {
+    const serverPoint = {
+      ...point,
+      offers: point.offers.map((offer) => offer.id),
+      destination: point.destination.id,
+      'date_from': point.start.toISOString(),
+      'date_to': point.end.toISOString(),
+      'base_price': point.price
+    };
+    delete serverPoint['start'];
+    delete serverPoint['end'];
+    delete serverPoint['price'];
+
+    return serverPoint;
   };
 }

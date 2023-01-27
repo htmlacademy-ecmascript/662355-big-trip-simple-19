@@ -18,5 +18,14 @@ export default class PointService extends ApiService {
   get destinations() {
     return this._load({ url: 'destinations' }).then(ApiService.parseResponse);
   }
+
+  updatePoint(point) {
+    return this._load({
+      url: `points/${point.id}`,
+      method: Method.PUT,
+      body: JSON.stringify(point),
+      headers: new Headers({'Content-Type': 'application/json'})
+    }).then(ApiService.parseResponse);
+  }
 }
 

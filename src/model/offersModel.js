@@ -1,14 +1,23 @@
-import { offers } from '../mock/data.js';
+// import { offers } from '../mock/data.js';
 
 export default class OffersModel {
-  #offersByType = [...offers];
+  #offersByType = [];
+  #apiService = null;
+
+  constructor({ apiService }) {
+    this.#apiService = apiService;
+  }
 
   get offers() {
-    return [...this.#offersByType];
+    return this.#offersByType;
+  }
+
+  async init() {
+    this.#offersByType = await this.#apiService.offers;
   }
 
   getByType(type) {
-    return this.#offersByType.find((offer) => offer.type === type).offers;
+    return this.offers.find((offer) => offer.type === type).offers;
   }
 
 }

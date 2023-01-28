@@ -243,7 +243,7 @@ export default class FormView extends AbstractStatefulView {
   #priceChangeHandler = (evt) => {
     evt.preventDefault();
     this.updateElement({
-      price: evt.target.value
+      price: +evt.target.value
     });
   };
 

@@ -1,23 +1,21 @@
 import SorterView from '../view/sorterView.js';
 import { render, remove, RenderPosition } from '../framework/render.js';
 import PointListView from '../view/pointListView.js';
-import PointsModel from '../model/pointModel.js';
-import DestinationsModel from '../model/destinationModel.js';
-import OffersModel from '../model/offersModel.js';
 import EmptyListView from '../view/emptyListView.js';
 import PointPresenter from './pointPresenter.js';
 import { FilterType, SortType, UpdateType, UserAction } from '../const.js';
 import { sortPointsByDay, sortPointsByPrice } from '../utils/utils.js';
 import { filter } from '../utils/filter.js';
 import NewPointPresenter from './newPointPresenter.js';
+import LoadingView from '../view/loadingView.js';
 
 export default class PointsListPresenter {
   #pointListComponent = new PointListView();
   #emptyListComponent = null;
   #sorterComponent = null;
-  #destinationsModel = new DestinationsModel();
+  #destinationsModel = null;
   #pointsModel = null;
-  #offersModel = new OffersModel();
+  #offersModel = null;
   #pointsContainer = null;
   #pointPresenters = new Map();
   #sortType = SortType.DAY;
@@ -25,12 +23,17 @@ export default class PointsListPresenter {
   #filterType = FilterType.ALL;
   #handleNewPointFormToClose = null;
   #newPointForm = null;
+  #loadingComponent = new LoadingView();
+  #isLoading = true;
 
 
-  constructor({ pointsContainer, filterModel, onNewPointFormClose }) {
-    this.#pointsModel = new PointsModel(this.#offersModel, this.#destinationsModel);
+  constructor({ pointsContainer, filterModel, onNewPointFormClose, pointsModel, destinationsModel, offersModel }) {
+    this.#pointsModel = pointsModel;
+    this.#destinationsModel = destinationsModel;
+    this.#offersModel = offersModel;
     this.#pointsContainer = pointsContainer;
     this.#filterModel = filterModel;
+
     this.#handleNewPointFormToClose = onNewPointFormClose;
     this.#pointsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
@@ -91,6 +94,7 @@ export default class PointsListPresenter {
     this.#pointPresenters.clear();
 
     remove(this.#sorterComponent);
+    remove(this.#loadingComponent);
 
     if (resertSortType) {
       this.#sortType = SortType.DAY;
@@ -121,6 +125,10 @@ export default class PointsListPresenter {
     this.#renderList();
   };
 
+  #renderLoading() {
+    render(this.#loadingComponent, this.#pointsContainer);
+  }
+
   #renderSorter() {
     this.#sorterComponent = new SorterView({
       onSortTypeChange: this.#handleSortTypeChange,
@@ -137,7 +145,9 @@ export default class PointsListPresenter {
   }
 
   #renderList() {
-    if (this.#points.length === 0) {
+    if (this.#isLoading) {
+      this.#renderLoading();
+    } else if (this.#points.length === 0) {
       this.#renderEmptyList();
     } else {
       this.#renderSorter();
@@ -167,6 +177,13 @@ export default class PointsListPresenter {
         this.#clearPoints({ resertSortType: true });
         this.#renderList();
         break;
+
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderList();
+        break;
+
     }
   };
 

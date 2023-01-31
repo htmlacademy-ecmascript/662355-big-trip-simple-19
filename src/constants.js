@@ -1,3 +1,5 @@
+const END_POINT = 'https://19.ecmascript.pages.academy/big-trip-simple';
+
 const SortType = {
   PRICE: 'price',
   DAY: 'day'
@@ -21,4 +23,4 @@ const UserAction = {
   DELETE_POINT: 'DELETE_POINT',
 };
 
-export { SortType, UpdateType, UserAction, FilterType };
+export { SortType, UpdateType, UserAction, FilterType, END_POINT };

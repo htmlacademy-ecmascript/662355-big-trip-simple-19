@@ -1,4 +1,4 @@
-import { FilterType } from '../const.js';
+import { FilterType } from '../constants.js';
 
 const filter = {
   [FilterType.ALL]: (points) => points,
@@ -8,4 +8,4 @@ const filter = {
   }
 };
 
-export {filter};
+export { filter };

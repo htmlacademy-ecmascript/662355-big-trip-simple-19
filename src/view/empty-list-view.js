@@ -1,4 +1,4 @@
-import { FilterType } from '../const.js';
+import { FilterType } from '../constants.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 const emptyPointsText = {

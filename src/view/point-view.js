@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate } from '../utils/utils.js';
+import { humanizePointTime, machinePointDateTime, humanizePointDate, machinePointDate } from '../utils/point.js';
 import he from 'he';
 
 function createOfferTemplate(offer) {
@@ -44,10 +44,10 @@ export default class PointView extends AbstractView {
   #point = null;
   #handleClick = null;
 
-  constructor({ point, onClick }) {
+  constructor({ point, onRollUp }) {
     super();
     this.#point = point;
-    this.#handleClick = onClick;
+    this.#handleClick = onRollUp;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
   }
 

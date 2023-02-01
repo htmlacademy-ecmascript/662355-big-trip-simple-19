@@ -1,5 +1,3 @@
-// import { destinations } from '../mock/data.js';
-
 export default class DestinationsModel {
   #destinations = [];
   #apiService = null;

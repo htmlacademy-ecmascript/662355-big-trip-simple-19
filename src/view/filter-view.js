@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { FilterType } from '../const.js';
+import { FilterType } from '../constants.js';
 
 function createFilterTemplate(filterType) {
   return `<div class="trip-main__trip-controls  trip-controls">
@@ -45,6 +45,5 @@ export default class FilterView extends AbstractView {
     evt.preventDefault();
     this.#handleChangeFilter(evt.target.value);
   };
-
 
 }

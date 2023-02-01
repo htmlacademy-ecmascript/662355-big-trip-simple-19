@@ -1,5 +1,3 @@
-// import { offers } from '../mock/data.js';
-
 export default class OffersModel {
   #offersByType = [];
   #apiService = null;

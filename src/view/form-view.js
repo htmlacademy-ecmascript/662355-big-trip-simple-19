@@ -5,9 +5,9 @@ import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
 
-function createOfferTemplate(offer, checked) {
+function createOfferTemplate(offer, checked, isDisabled) {
   return `<div class="event__offer-selector">
-  <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer" ${checked ? 'checked' : ''} data-offer-id='${offer.id}'>
+  <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer" ${checked ? 'checked' : ''} data-offer-id='${offer.id}'  ${isDisabled ? 'disabled' : ''}>
   <label class="event__offer-label" for="event-offer-${offer.id}">
     <span class="event__offer-title">${offer.title}</span>
     &plus;&euro;&nbsp;
@@ -60,24 +60,26 @@ const rollButton = `<button class="event__rollup-btn" type="button">
 <span class="visually-hidden">Open event</span>
 </button>`;
 
-function createFormTemplate(state, offersByType, destinations, isNewForm) {
+function createFormTemplate(state, offersByType, destinations) {
   const offers = offersByType.find((offer) => state.type === offer.type).offers;
   let offersTemplate = '';
   if (offers.length > 0) {
-    const offersTemplateList = offers.map((offer) => createOfferTemplate(offer, state.offers.some((pointOffer) => pointOffer.id === offer.id)))
+    const offersTemplateList = offers.map((offer) => createOfferTemplate(offer, state.offers.some((pointOffer) => pointOffer.id === offer.id), state.isDisabled))
       .join('\n');
     offersTemplate = createOffersContainer(offersTemplateList);
   }
-  const eventTypeTemplate = offersByType.map((offer) => offer.type).map((type) => createEventTypeTemplate(type)).join('\n');
+
+  const eventTypeTemplate = offersByType.map((offer) => createEventTypeTemplate(offer.type)).join('\n');
   let selectedDestination = null;
   if (state.destination) {
     selectedDestination = destinations.find((destination) => destination.id === state.destination.id);
   }
   const destinationsTemplate = destinations.map((destination) => createDestinationTemplate(destination)).join('\n');
   const selectedDestinationTemplate = selectedDestination ? createDestinationContainer(selectedDestination) : '';
-  const destinationName = selectedDestination ? selectedDestination.name : '';
+  const destinationPattern = destinations.map((destination) => destination.name).join('|');
   const price = state.price ? state.price : 0;
-  const buttonName = isNewForm ? 'Cancel' : 'Delete';
+  const deleteName = state.isDeleting ? 'Deleting...' : 'Delete';
+  const buttonName = state.id ? deleteName : 'Cancel';
   return ` <form class="event event--edit" action="#" method="post">
       <header class="event__header">
         <div class="event__type-wrapper">
@@ -85,7 +87,7 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
             <span class="visually-hidden">Choose event type</span>
             <img class="event__type-icon" width="17" height="17" src="img/icons/${state.type}.png" alt="Event type icon">
           </label>
-          <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+          <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${state.isDisabled ? 'disabled' : ''}>
 
             <div class="event__type-list">
               <fieldset class="event__type-group">
@@ -101,7 +103,7 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
           <label class="event__label  event__type-output" for="event-destination-1">
             ${state.type}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destinationName)}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(state.destinationName || '')}" pattern="${destinationPattern}" required list="destination-list-1" ${state.isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-1">
              ${destinationsTemplate}
             </datalist>
@@ -109,10 +111,10 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
 
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="" ${state.isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="" ${state.isDisabled ? 'disabled' : ''}>
             </div>
 
             <div class="event__field-group  event__field-group--price">
@@ -120,12 +122,12 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price}" min="0">
+              <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price}" min="1" ${state.isDisabled ? 'disabled' : ''}>
             </div>
 
-            <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-            <button class="event__reset-btn" type="reset">${buttonName}</button>  
-            ${isNewForm ? '' : rollButton}
+            <button class="event__save-btn  btn  btn--blue" type="submit" ${state.isDisabled ? 'disabled' : ''}>${state.isSaving ? 'Saving...' : 'Save'}</button>
+            <button class="event__reset-btn" type="reset" ${state.isDisabled ? 'disabled' : ''}>${buttonName}</button>  
+            ${state.id ? rollButton : ''}
           </header>
           <section class="event__details">
             ${offersTemplate}
@@ -136,27 +138,23 @@ function createFormTemplate(state, offersByType, destinations, isNewForm) {
 }
 
 export default class FormView extends AbstractStatefulView {
+  #DATE_FORMAT = 'j/m/y H:i';
   #handleSubmit = null;
-  #handleRollUp = null;
+  #handleRollDown = null;
   #destinations = null;
   #offersByType = null;
   #nameToDestination = null;
-  #isNewForm = false;
   #datepickerStart = null;
   #datepickerEnd = null;
   #handleRemove = null;
 
-  constructor({ point, onSubmit, onRollUp, offersByType, destinations, onRemove }) {
+  constructor({ point, onSubmit, onRollDown, offersByType, destinations, onRemove }) {
     super();
-    if (point) {
-      this._setState(this.#parsePointToState(point));
-    } else {
-      this.#isNewForm = true;
-      this._setState(this.#createStateNewForm());
-    }
+    const newState = point ? this.#parsePointToState(point) : this.#createStateNewForm();
+    this._setState(newState);
     this.#handleRemove = onRemove;
     this.#handleSubmit = onSubmit;
-    this.#handleRollUp = onRollUp;
+    this.#handleRollDown = onRollDown;
     this.#destinations = destinations;
     this.#offersByType = offersByType;
     this.#nameToDestination = destinations.reduce((acc, destination) => {
@@ -167,22 +165,12 @@ export default class FormView extends AbstractStatefulView {
   }
 
   get template() {
-    return createFormTemplate(this._state, this.#offersByType, this.#destinations, this.#isNewForm);
+    return createFormTemplate(this._state, this.#offersByType, this.#destinations);
   }
-
-  #submitHandler = (evt) => {
-    evt.preventDefault();
-    const point = this.#parseStateToPoint();
-    this.#handleSubmit(point);
-  };
-
-  #rollUpHandler = () => {
-    this.#handleRollUp();
-  };
 
   _restoreHandlers = () => {
     this.element.addEventListener('submit', this.#submitHandler);
-    if (!this.#isNewForm) {
+    if (this._state.id) {
       this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollUpHandler);
     }
     this.element.querySelector('#event-destination-1').addEventListener('change', this.#destinationChangeHandler);
@@ -200,19 +188,6 @@ export default class FormView extends AbstractStatefulView {
     this.#setDatepickerEnd();
   };
 
-  #parsePointToState(point) {
-    return {
-      ...point,
-    };
-  }
-
-  #parseStateToPoint() {
-    return {
-      ...this._state,
-      price: this._state.price ? this._state.price : 0
-    };
-  }
-
   removeElement() {
     super.removeElement();
 
@@ -223,14 +198,48 @@ export default class FormView extends AbstractStatefulView {
     this.#datepickerEnd = null;
   }
 
+  #parsePointToState(point) {
+    return {
+      ...point,
+      destinationName: point.destination.name,
+      isSaving: false,
+      isDeleting: false,
+      isDisabled: false
+    };
+  }
+
+  #parseStateToPoint() {
+    const point = {
+      ...this._state,
+      price: this._state.price ? this._state.price : 0
+    };
+    delete point.destinationName;
+    delete point.isSaving;
+    delete point.isDeleting;
+    delete point.isDisabled;
+    return point;
+  }
+
   #createStateNewForm() {
     return {
       type: 'bus',
       offers: [],
       start: new Date(),
-      end: new Date()
+      end: new Date(),
+      isSaving: false,
+      isDisabled: false
     };
   }
+
+  #submitHandler = (evt) => {
+    evt.preventDefault();
+    const point = this.#parseStateToPoint();
+    this.#handleSubmit(point);
+  };
+
+  #rollUpHandler = () => {
+    this.#handleRollDown();
+  };
 
   #eventChangeHandler = (evt) => {
     evt.preventDefault();
@@ -272,21 +281,18 @@ export default class FormView extends AbstractStatefulView {
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const destination = this.#nameToDestination[evt.target.value];
-    if (destination || !evt.target.value) {
-      this.updateElement({
-        destination: this.#nameToDestination[evt.target.value]
-      });
-    } else {
-      evt.target.setCustomValidity('Please select a valid value');
-    }
-
+    const newDestination = destination ? this.#nameToDestination[evt.target.value] : null;
+    this.updateElement({
+      destination: newDestination,
+      destinationName: evt.target.value
+    });
   };
 
   #setDatepickerStart() {
     this.#datepickerStart = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
-        dateFormat: 'j/m/y H:i',
+        dateFormat: this.#DATE_FORMAT,
         enableTime: true,
         defaultDate: this._state.start,
         onChange: ([userDate]) => {
@@ -304,7 +310,7 @@ export default class FormView extends AbstractStatefulView {
     this.#datepickerEnd = flatpickr(
       this.element.querySelector('#event-end-time-1'),
       {
-        dateFormat: 'j/m/y H:i',
+        dateFormat: this.#DATE_FORMAT,
         enableTime: true,
         defaultDate: this._state.end,
         minDate: this._state.start,

@@ -1,18 +1,17 @@
-import FormView from '../view/formView.js';
+import FormView from '../view/form-view.js';
 import { render, remove } from '../framework/render.js';
-import { UpdateType, UserAction } from '../const.js';
-import { nanoid } from 'nanoid';
+import { UpdateType, UserAction } from '../constants.js';
 
 export default class NewPointPresenter {
   #newPointFormComponent = null;
-  #renderPositionComponent = null;
+  #position = null;
   #offersModel = null;
   #destinationsModel = null;
   #handleDataChange = null;
   #handleDestroy = null;
 
-  constructor({ onDestroy, renderPositionComponent, offersModel, destinationsModel, onDataChange }) {
-    this.#renderPositionComponent = renderPositionComponent;
+  constructor({ onDestroy, position, offersModel, destinationsModel, onDataChange }) {
+    this.#position = position;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#handleDataChange = onDataChange;
@@ -27,7 +26,24 @@ export default class NewPointPresenter {
       destinations: this.#destinationsModel.destinations
     });
 
-    render(this.#newPointFormComponent, this.#renderPositionComponent.component, this.#renderPositionComponent.position);
+    render(this.#newPointFormComponent, this.#position.component, this.#position.position);
+  }
+
+  setSaving() {
+    this.#newPointFormComponent.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#newPointFormComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+      });
+    };
+    this.#newPointFormComponent.shake(resetFormState);
   }
 
   destroy() {
@@ -40,14 +56,15 @@ export default class NewPointPresenter {
     document.removeEventListener('keydown', this.#escHandler);
   }
 
-  #handlerFormSubmit = (point) => {
-    point.id = nanoid();
-    this.#handleDataChange(
+  #handlerFormSubmit = async (point) => {
+    const isSuccess = await this.#handleDataChange(
       UserAction.ADD_POINT,
       UpdateType.MAJOR,
       point
     );
-    this.destroy();
+    if (isSuccess) {
+      this.destroy();
+    }
   };
 
   #handlerRemove = () => {

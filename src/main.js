@@ -3,7 +3,7 @@ import FilterPresenter from './presenter/filter-presenter.js';
 import FilterModel from './model/filter-model.js';
 import NewPointButtonView from './view/new-point-button-view.js';
 import { render } from './framework/render.js';
-import { FilterType, UpdateType,END_POINT } from './constants.js';
+import { FilterType, UpdateType, END_POINT } from './constants.js';
 import randomstring from 'randomstring';
 import PointService from './point-service.js';
 import PointsModel from './model/points-model.js';
@@ -35,19 +35,19 @@ const newPointComponent = new NewPointButtonView({
 });
 function handleNewPointFormClose() {
   newPointComponent.element.disabled = false;
-  filterModel.setFilter(UpdateType.MAJOR, FilterType.ALL);
 }
 function handleNewPointButtonClick() {
   pointsPresenter.openNewPointForm();
   newPointComponent.element.disabled = true;
+  filterModel.setFilter(UpdateType.MAJOR, FilterType.ALL);
 }
 const newPointContainer = document.querySelector('.trip-main');
 render(newPointComponent, newPointContainer);
 
-
 const filterContainer = document.querySelector('.trip-controls__filters');
 const filterPresenter = new FilterPresenter({
   filterContainer: filterContainer,
-  filterModel: filterModel
+  filterModel: filterModel,
+  pointsModel: pointsModel
 });
 filterPresenter.init();

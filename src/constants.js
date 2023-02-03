@@ -10,11 +10,17 @@ const FilterType = {
   FUTURE: 'FUTURE'
 };
 
+const MessagesType = {
+  ...FilterType,
+  ERROR: 'ERROR'
+};
+
 const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
   INIT: 'INIT',
+  ERROR: 'ERROR'
 };
 
 const UserAction = {
@@ -23,4 +29,4 @@ const UserAction = {
   DELETE_POINT: 'DELETE_POINT',
 };
 
-export { SortType, UpdateType, UserAction, FilterType, END_POINT };
+export { SortType, UpdateType, UserAction, FilterType, MessagesType, END_POINT };

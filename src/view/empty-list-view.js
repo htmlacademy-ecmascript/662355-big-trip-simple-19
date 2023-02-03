@@ -1,9 +1,10 @@
-import { FilterType } from '../constants.js';
+import { MessagesType } from '../constants.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 const emptyPointsText = {
-  [FilterType.ALL]: 'Click New Event to create your first point',
-  [FilterType.FUTURE]: 'There are no future events now'
+  [MessagesType.ALL]: 'Click New Event to create your first point',
+  [MessagesType.FUTURE]: 'There are no future events now',
+  [MessagesType.ERROR]: 'Can\'t load information from server. Try later'
 };
 
 function createTemplate(filterType) {
@@ -12,14 +13,14 @@ function createTemplate(filterType) {
 }
 
 export default class EmptyListView extends AbstractView {
-  #filerType = null;
+  #messageType = null;
 
-  constructor({ filterType }) {
+  constructor({ messageType }) {
     super();
-    this.#filerType = filterType;
+    this.#messageType = messageType;
   }
 
   get template() {
-    return createTemplate(this.#filerType);
+    return createTemplate(this.#messageType);
   }
 }

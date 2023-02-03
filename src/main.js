@@ -24,6 +24,7 @@ const pointsPresenter = new PointsListPresenter({
   pointsContainer: pointsContainer,
   filterModel: filterModel,
   onNewPointFormClose: handleNewPointFormClose,
+  disableButton: disableButton,
   pointsModel: pointsModel,
   offersModel: offersModel,
   destinationsModel: destinationsModel
@@ -41,6 +42,12 @@ function handleNewPointButtonClick() {
   newPointComponent.element.disabled = true;
   filterModel.setFilter(UpdateType.MAJOR, FilterType.ALL);
 }
+
+function disableButton() {
+  newPointComponent.element.disabled = true;
+}
+
+
 const newPointContainer = document.querySelector('.trip-main');
 render(newPointComponent, newPointContainer);
 

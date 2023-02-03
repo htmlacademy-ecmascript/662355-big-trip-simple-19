@@ -19,6 +19,7 @@ export default class PointsModel extends Observable {
   }
 
   async init() {
+    let updateType = UpdateType.INIT;
     try {
       const [points] = await Promise.all([
         this.#apiService.points,
@@ -30,9 +31,9 @@ export default class PointsModel extends Observable {
         this.#points.set(point.id, clientPoint);
       });
     } catch (err) {
-      this.#points = new Map();
+      updateType = UpdateType.ERROR;
     }
-    this._notify(UpdateType.INIT);
+    this._notify(updateType);
   }
 
   async updatePoint(updateType, update) {

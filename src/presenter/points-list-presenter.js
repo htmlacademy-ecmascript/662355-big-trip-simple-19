@@ -3,7 +3,7 @@ import { render, remove, RenderPosition } from '../framework/render.js';
 import PointListView from '../view/point-list-view.js';
 import EmptyListView from '../view/empty-list-view.js';
 import PointPresenter from './point-presenter.js';
-import { FilterType, SortType, UpdateType, UserAction } from '../constants.js';
+import { FilterType, SortType, UpdateType, UserAction, MessagesType } from '../constants.js';
 import { sorter } from '../utils/sorter.js';
 import { filter } from '../utils/filter.js';
 import NewPointPresenter from './new-point-presenter.js';
@@ -31,18 +31,21 @@ export default class PointsListPresenter {
   #newPointFormPresenter = null;
   #loadingComponent = new LoadingView();
   #isLoading = true;
+  #isError = false;
+  #disableButton = null;
   #uiBlocker = new UiBlocker({
     lowerLimit: TimeLimit.LOWER_LIMIT,
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
 
-  constructor({ pointsContainer, filterModel, onNewPointFormClose, pointsModel, destinationsModel, offersModel }) {
+  constructor({ pointsContainer, filterModel, onNewPointFormClose, pointsModel, destinationsModel, offersModel, disableButton }) {
     this.#pointsModel = pointsModel;
     this.#destinationsModel = destinationsModel;
     this.#offersModel = offersModel;
     this.#pointsContainer = pointsContainer;
     this.#filterModel = filterModel;
+    this.#disableButton = disableButton;
 
     this.#handleNewPointFormToClose = onNewPointFormClose;
     this.#pointsModel.addObserver(this.#handleModelEvent);
@@ -97,10 +100,18 @@ export default class PointsListPresenter {
 
   #renderEmptyList() {
     this.#emptyListComponent = new EmptyListView({
-      filterType: this.#filterType
+      messageType: this.#filterType
     });
     render(this.#emptyListComponent, this.#pointsContainer);
   }
+
+  #renderError() {
+    this.#emptyListComponent = new EmptyListView({
+      messageType: MessagesType.ERROR
+    });
+    render(this.#emptyListComponent, this.#pointsContainer);
+  }
+
 
   #clearPoints({ resertSortType = false } = {}) {
     this.#pointPresenters.forEach((pointPresenter) => {
@@ -149,6 +160,8 @@ export default class PointsListPresenter {
   #renderList() {
     if (this.#isLoading) {
       this.#renderLoading();
+    } else if (this.#isError) {
+      this.#renderError();
     } else if (this.#points.length === 0) {
       this.#renderEmptyList();
     } else {
@@ -192,6 +205,13 @@ export default class PointsListPresenter {
         this.#renderList();
         break;
 
+      case UpdateType.ERROR:
+        this.#isLoading = false;
+        this.#isError = true;
+        remove(this.#loadingComponent);
+        this.#disableButton();
+        this.#renderList();
+        break;
     }
   };
 
